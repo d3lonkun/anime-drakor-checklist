@@ -7,67 +7,44 @@ import { SYNC_EVENT } from '@/lib/sync'
 import { Stats, MediaEntry } from '@/types'
 
 const CATEGORIES = [
-  {
-    href: '/anime', label: 'Anime', emoji: '🎌',
-    gradient: 'from-blue-600/30 to-violet-600/20',
-    border: 'border-blue-500/20',
-    desc: 'Series & Film Jepang'
-  },
-  {
-    href: '/manga', label: 'Komik', emoji: '📚',
-    gradient: 'from-amber-600/30 to-red-600/20',
-    border: 'border-amber-500/20',
-    desc: 'Manga, Manhwa, Manhua'
-  },
-  {
-    href: '/drakor', label: 'Drakor', emoji: '💝',
-    gradient: 'from-pink-600/30 to-violet-600/20',
-    border: 'border-pink-500/20',
-    desc: 'Drama Korea'
-  },
-  {
-    href: '/dorama', label: 'Dorama', emoji: '🎭',
-    gradient: 'from-cyan-600/30 to-emerald-600/20',
-    border: 'border-cyan-500/20',
-    desc: 'Drama Jepang'
-  },
+  { href: '/anime', label: 'Anime', emoji: '🎌', gradient: 'from-blue-600/30 to-violet-600/20', border: 'border-blue-500/20', desc: 'Series & Film Jepang' },
+  { href: '/manga', label: 'Komik', emoji: '📚', gradient: 'from-amber-600/30 to-red-600/20', border: 'border-amber-500/20', desc: 'Manga, Manhwa, Manhua' },
+  { href: '/drakor', label: 'Drakor', emoji: '💝', gradient: 'from-pink-600/30 to-violet-600/20', border: 'border-pink-500/20', desc: 'Drama Korea' },
+  { href: '/dorama', label: 'Dorama', emoji: '🎭', gradient: 'from-cyan-600/30 to-emerald-600/20', border: 'border-cyan-500/20', desc: 'Drama Jepang' },
 ]
 
-export default function HomePage() {
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [recentEntries, setRecentEntries] = useState<MediaEntry[]>([])
-  const [catStats, setCatStats] = useState({
-    anime: getStats('anime'),
-    manga: getStats('manga'),
-    drakor: getStats('drakor'),
-    dorama: getStats('dorama'),
-  })
-
-  const load = useCallback(() => {
-    setStats(getStats())
-    setRecentEntries(
-      getAllEntries()
-        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-        .slice(0, 5)
-    )
-    setCatStats({
+function loadAllData() {
+  return {
+    stats: getStats(),
+    catStats: {
       anime: getStats('anime'),
       manga: getStats('manga'),
       drakor: getStats('drakor'),
       dorama: getStats('dorama'),
-    })
+    },
+    recent: getAllEntries()
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 5),
+  }
+}
+
+export default function HomePage() {
+  const [data, setData] = useState(loadAllData)
+
+  const load = useCallback(() => {
+    setData(loadAllData())
   }, [])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
-  // FIX: reload saat ada sync dari Supabase
+  // Dengarkan event dari SyncProvider → reload otomatis
   useEffect(() => {
     const handler = () => load()
     window.addEventListener(SYNC_EVENT, handler)
     return () => window.removeEventListener(SYNC_EVENT, handler)
   }, [load])
+
+  const { stats, catStats, recent } = data
 
   return (
     <div className="px-4 py-4 space-y-6 animate-fade-in">
@@ -75,46 +52,36 @@ export default function HomePage() {
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600/20 via-violet-600/10 to-transparent rounded-2xl p-5 border border-blue-500/20">
         <div className="absolute top-0 right-0 text-6xl opacity-20 -translate-y-2 translate-x-2">🎌</div>
         <p className="text-xs text-blue-400 font-medium mb-1 uppercase tracking-wider">Selamat Datang</p>
-        <h1 className="text-xl font-black text-slate-100 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
-          OtakuTracker
-        </h1>
+        <h1 className="text-xl font-black text-slate-100 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>OtakuTracker</h1>
         <p className="text-sm text-slate-400">Lacak semua tontonan & bacaan kamu 📺📖</p>
-
-        {stats && (
-          <div className="grid grid-cols-3 gap-2 mt-4">
-            <div className="bg-black/20 rounded-xl p-2.5 text-center">
-              <p className="text-xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.total}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Total</p>
-            </div>
-            <div className="bg-black/20 rounded-xl p-2.5 text-center">
-              <p className="text-xl font-black text-blue-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.watching}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Sedang Nonton</p>
-            </div>
-            <div className="bg-black/20 rounded-xl p-2.5 text-center">
-              <p className="text-xl font-black text-green-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.completed}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Selesai</p>
-            </div>
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <div className="bg-black/20 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.total}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Total</p>
           </div>
-        )}
+          <div className="bg-black/20 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-black text-blue-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.watching}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Sedang Nonton</p>
+          </div>
+          <div className="bg-black/20 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-black text-green-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.completed}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Selesai</p>
+          </div>
+        </div>
       </div>
 
-      {/* Category cards */}
+      {/* Categories */}
       <div>
         <h2 className="section-title text-slate-300 mb-3">Kategori</h2>
         <div className="grid grid-cols-2 gap-3">
           {CATEGORIES.map(cat => {
             const cs = catStats[cat.href.slice(1) as keyof typeof catStats]
             return (
-              <Link
-                key={cat.href}
-                href={cat.href}
-                className={`bg-gradient-to-br ${cat.gradient} rounded-2xl p-4 border ${cat.border} card-hover block`}
-              >
+              <Link key={cat.href} href={cat.href}
+                className={`bg-gradient-to-br ${cat.gradient} rounded-2xl p-4 border ${cat.border} card-hover block`}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-2xl">{cat.emoji}</span>
-                  <span className="text-2xl font-black text-white/80" style={{ fontFamily: 'Syne, sans-serif' }}>
-                    {cs?.total || 0}
-                  </span>
+                  <span className="text-2xl font-black text-white/80" style={{ fontFamily: 'Syne, sans-serif' }}>{cs?.total || 0}</span>
                 </div>
                 <p className="font-bold text-slate-200 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>{cat.label}</p>
                 <p className="text-[11px] text-slate-500 mt-0.5">{cat.desc}</p>
@@ -131,7 +98,7 @@ export default function HomePage() {
       </div>
 
       {/* Pencapaian */}
-      {stats && (stats.episodes_watched > 0 || stats.chapters_read > 0) && (
+      {(stats.episodes_watched > 0 || stats.chapters_read > 0) && (
         <div>
           <h2 className="section-title text-slate-300 mb-3">Pencapaian</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -150,16 +117,13 @@ export default function HomePage() {
       )}
 
       {/* Aktivitas terakhir */}
-      {recentEntries.length > 0 && (
+      {recent.length > 0 && (
         <div>
           <h2 className="section-title text-slate-300 mb-3">Aktivitas Terakhir</h2>
           <div className="space-y-2">
-            {recentEntries.map(entry => (
-              <Link
-                key={entry.id}
-                href={`/${entry.category}`}
-                className="flex items-center gap-3 bg-[#1a1e2e] rounded-xl p-3 border border-[#1e2538] card-hover"
-              >
+            {recent.map(entry => (
+              <Link key={entry.id} href={`/${entry.category}`}
+                className="flex items-center gap-3 bg-[#1a1e2e] rounded-xl p-3 border border-[#1e2538] card-hover">
                 <div className="text-xl">
                   {entry.category === 'anime' ? '🎌' : entry.category === 'manga' ? '📚' : entry.category === 'drakor' ? '💝' : '🎭'}
                 </div>
@@ -182,7 +146,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {stats?.total === 0 && (
+      {stats.total === 0 && (
         <div className="text-center py-8">
           <p className="text-4xl mb-3">🎌</p>
           <p className="text-slate-400 font-medium">Belum ada list!</p>

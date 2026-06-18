@@ -1,7 +1,9 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Search, Settings } from 'lucide-react'
+import { Search, Settings, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { syncFromSupabaseToLocal } from '@/lib/sync'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'OtakuTracker',
@@ -18,13 +20,20 @@ const accentMap: Record<string, string> = {
   '/manga': 'from-amber-500 to-red-500',
   '/drakor': 'from-pink-500 to-violet-500',
   '/dorama': 'from-cyan-500 to-emerald-500',
-  '/settings': 'from-slate-500 to-slate-600',
 }
 
 export default function TopBar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] || 'OtakuTracker'
   const accent = accentMap[pathname] || 'from-blue-500 to-violet-500'
+  const [syncing, setSyncing] = useState(false)
+
+  async function handleManualSync() {
+    if (syncing) return
+    setSyncing(true)
+    await syncFromSupabaseToLocal()
+    setSyncing(false)
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-[#1e2538]">
@@ -38,6 +47,14 @@ export default function TopBar() {
           </span>
         </div>
         <div className="flex items-center gap-1">
+          {/* Tombol sync manual */}
+          <button
+            onClick={handleManualSync}
+            className="p-2 rounded-xl hover:bg-white/5 transition-colors text-slate-400"
+            title="Sync data"
+          >
+            <RefreshCw size={18} className={syncing ? 'animate-spin text-blue-400' : ''} />
+          </button>
           <Link href="/search" className="p-2 rounded-xl hover:bg-white/5 transition-colors text-slate-400">
             <Search size={20} />
           </Link>

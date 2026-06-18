@@ -2,8 +2,6 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { isAuthenticated } from '@/lib/auth'
-import { syncFromSupabaseToLocal } from '@/lib/sync'
-import { supabase } from '@/lib/supabase'
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<'loading' | 'auth' | 'unauth'>('loading')
@@ -12,11 +10,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const authed = isAuthenticated()
-
     if (authed) {
       setStatus('auth')
-      // Sync pertama saat buka app
-      syncFromSupabaseToLocal().catch(console.error)
     } else if (pathname !== '/login') {
       router.replace('/login')
       setStatus('unauth')
@@ -24,42 +19,6 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       setStatus('unauth')
     }
   }, [pathname, router])
-
-  // Sync saat user balik ke tab/window (visibility change)
-  useEffect(() => {
-    if (status !== 'auth') return
-
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        // User balik ke tab ini — sync dari Supabase
-        syncFromSupabaseToLocal().catch(console.error)
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [status])
-
-  // Supabase Realtime — update otomatis saat ada perubahan di device lain
-  useEffect(() => {
-    if (status !== 'auth' || !supabase) return
-
-    const channel = supabase
-      .channel('realtime-media-entries')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'media_entries' },
-        async () => {
-          // Ada perubahan di Supabase → sync ke localStorage dan update UI
-          await syncFromSupabaseToLocal()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [status])
 
   if (status === 'loading') {
     return (
@@ -70,11 +29,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (pathname === '/login') {
-    return <>{children}</>
-  }
-
+  if (pathname === '/login') return <>{children}</>
   if (status !== 'auth') return null
-
   return <>{children}</>
 }

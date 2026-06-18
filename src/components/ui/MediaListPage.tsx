@@ -17,13 +17,8 @@ interface Props {
 
 const SUBTYPE_FILTERS: Record<string, Record<string, string>> = {
   manga: {
-    all: 'Semua',
-    manga: 'Manga',
-    manhwa: 'Manhwa',
-    manhua: 'Manhua',
-    komik_indo: 'Indo',
-    webtoon: 'Webtoon',
-    novel: 'Novel',
+    all: 'Semua', manga: 'Manga', manhwa: 'Manhwa',
+    manhua: 'Manhua', komik_indo: 'Indo', webtoon: 'Webtoon', novel: 'Novel',
   }
 }
 
@@ -47,7 +42,7 @@ export default function MediaListPage({ category, showMALSearch = false }: Props
     load()
   }, [load])
 
-  // FIX: dengarkan event sync dan reload otomatis
+  // Dengarkan event dari SyncProvider → reload otomatis
   useEffect(() => {
     const handler = () => load()
     window.addEventListener(SYNC_EVENT, handler)
@@ -64,13 +59,11 @@ export default function MediaListPage({ category, showMALSearch = false }: Props
       return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     })
 
-  const hasMangaSubtypes = category === 'manga'
-
   return (
     <div className="px-4 py-3 space-y-4 animate-fade-in">
       <StatsBar stats={stats} activeFilter={filter} onFilter={setFilter} />
 
-      {hasMangaSubtypes && (
+      {category === 'manga' && (
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {Object.entries(SUBTYPE_FILTERS.manga).map(([key, label]) => (
             <button
@@ -114,18 +107,16 @@ export default function MediaListPage({ category, showMALSearch = false }: Props
         {showMALSearch && (
           <button
             onClick={() => setShowMAL(true)}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 text-sm font-medium active:bg-blue-600/30 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 text-sm font-medium"
           >
-            <Search size={16} />
-            Cari di MAL
+            <Search size={16} /> Cari di MAL
           </button>
         )}
         <button
           onClick={() => setShowAdd(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1a1e2e] border border-[#1e2538] text-slate-400 text-sm font-medium active:bg-white/5 transition-all"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1a1e2e] border border-[#1e2538] text-slate-400 text-sm font-medium"
         >
-          <Plus size={16} />
-          Tambah Manual
+          <Plus size={16} /> Tambah Manual
         </button>
       </div>
 
@@ -136,9 +127,6 @@ export default function MediaListPage({ category, showMALSearch = false }: Props
           </p>
           <p className="text-slate-400 font-medium text-sm">
             {search ? 'Tidak ditemukan' : filter !== 'all' ? 'Belum ada di kategori ini' : 'List masih kosong'}
-          </p>
-          <p className="text-slate-600 text-xs mt-1">
-            {!search && filter === 'all' && 'Tekan tombol + untuk mulai menambahkan'}
           </p>
         </div>
       ) : (
@@ -165,20 +153,8 @@ export default function MediaListPage({ category, showMALSearch = false }: Props
           onDelete={() => { load(); setSelected(null) }}
         />
       )}
-      {showAdd && (
-        <AddMediaModal
-          category={category}
-          onClose={() => setShowAdd(false)}
-          onAdd={load}
-        />
-      )}
-      {showMAL && (
-        <SearchMALModal
-          category={category}
-          onClose={() => setShowMAL(false)}
-          onAdd={load}
-        />
-      )}
+      {showAdd && <AddMediaModal category={category} onClose={() => setShowAdd(false)} onAdd={load} />}
+      {showMAL && <SearchMALModal category={category} onClose={() => setShowMAL(false)} onAdd={load} />}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation'
 import TopBar from './TopBar'
 import BottomNav from './BottomNav'
 import AuthGate from './AuthGate'
+import SyncProvider from '@/components/providers/SyncProvider'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -10,11 +11,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <AuthGate>
-      {!isLoginPage && <TopBar />}
-      <main className={!isLoginPage ? 'pt-14 pb-24 min-h-screen' : 'min-h-screen'}>
-        {children}
-      </main>
-      {!isLoginPage && <BottomNav />}
+      <SyncProvider>
+        {!isLoginPage && <TopBar />}
+        <main className={!isLoginPage ? 'pt-14 pb-24 min-h-screen' : 'min-h-screen'}>
+          {children}
+        </main>
+        {!isLoginPage && <BottomNav />}
+      </SyncProvider>
     </AuthGate>
   )
 }
