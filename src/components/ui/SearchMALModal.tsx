@@ -1,7 +1,7 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
-import { Search, Plus, Check, Star, X } from 'lucide-react'
+import { Search, Plus, Check, Star, X, Loader2, AlertCircle } from 'lucide-react'
 import { MediaCategory, MediaEntry, MediaSubtype, JikanAnime, JikanManga } from '@/types'
 import { searchAnime, searchManga } from '@/lib/jikan'
 import { getAllEntries, saveEntry, generateId } from '@/lib/storage'
@@ -19,6 +19,7 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
   const [error, setError] = useState('')
   const [added, setAdded] = useState<Set<number>>(new Set())
   const [mangaType, setMangaType] = useState('')
+  const [attempt, setAttempt] = useState(0)
 
   const existingMalIds = new Set(getAllEntries().filter(e => e.mal_id).map(e => e.mal_id!))
 
@@ -26,6 +27,8 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
     if (!query.trim()) return
     setLoading(true)
     setError('')
+    setResults([])
+
     try {
       let res
       if (category === 'anime') {
@@ -34,9 +37,11 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
         res = await searchManga(query, 1, mangaType || undefined)
       }
       setResults(res.data || [])
-      if (!res.data?.length) setError('Tidak ditemukan. Coba kata kunci lain.')
+      if (!res.data?.length) {
+        setError('Tidak ditemukan. Coba kata kunci lain.')
+      }
     } catch (e) {
-      setError('Gagal mengambil data. Coba lagi.')
+      setError('Gagal terhubung ke MyAnimeList. Coba lagi dalam beberapa detik.')
     } finally {
       setLoading(false)
     }
@@ -71,7 +76,6 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
       total: isAnime ? (animeItem.episodes || null) : (mangaItem.chapters || null),
       score: null,
       notes: '',
-      mal_id_confirmed: true,
       synopsis: item.synopsis?.slice(0, 500),
       genres: item.genres?.map(g => g.name) || [],
       year: item.year,
@@ -137,7 +141,7 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              onKeyDown={e => e.key === 'Enter' && !loading && handleSearch()}
               placeholder={`Cari ${category === 'anime' ? 'anime' : 'manga/komik'}...`}
               className="search-input"
               autoFocus
@@ -146,56 +150,82 @@ export default function SearchMALModal({ category, onAdd, onClose }: Props) {
           <button
             onClick={handleSearch}
             disabled={loading}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium text-sm active:bg-blue-700 flex-shrink-0"
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium text-sm active:bg-blue-700 flex-shrink-0 disabled:opacity-60 flex items-center gap-1.5"
           >
-            {loading ? '...' : 'Cari'}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : 'Cari'}
           </button>
         </div>
 
-        {error && <p className="text-center text-sm text-slate-500 py-4">{error}</p>}
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center py-8 space-y-2">
+            <Loader2 size={28} className="animate-spin text-blue-400 mx-auto" />
+            <p className="text-slate-400 text-sm">Mengambil data dari MAL...</p>
+            <p className="text-slate-600 text-xs">Mohon tunggu, API MAL kadang lambat</p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && !loading && (
+          <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-3">
+            <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-400">{error}</p>
+              <button
+                onClick={handleSearch}
+                className="text-xs text-blue-400 mt-1 underline"
+              >
+                Coba lagi
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Results */}
-        <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 220px)' }}>
-          {results.map(item => {
-            const isAdded = added.has(item.mal_id) || existingMalIds.has(item.mal_id)
-            const isAnime = category === 'anime'
-            const animeItem = item as JikanAnime
-            const mangaItem = item as JikanManga
-            const detail = isAnime
-              ? `${animeItem.episodes || '?'} ep · ${animeItem.type || 'Anime'}`
-              : `${mangaItem.chapters || '?'} ch · ${mangaItem.type || 'Manga'}`
+        {!loading && results.length > 0 && (
+          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 220px)' }}>
+            <p className="text-xs text-slate-600 mb-1">{results.length} hasil ditemukan</p>
+            {results.map(item => {
+              const isAdded = added.has(item.mal_id) || existingMalIds.has(item.mal_id)
+              const isAnime = category === 'anime'
+              const animeItem = item as JikanAnime
+              const mangaItem = item as JikanManga
+              const detail = isAnime
+                ? `${animeItem.episodes || '?'} ep · ${animeItem.type || 'Anime'}`
+                : `${mangaItem.chapters || '?'} ch · ${mangaItem.type || 'Manga'}`
 
-            return (
-              <div key={item.mal_id} className="flex gap-3 bg-[#1f2437] rounded-xl p-2.5 items-start">
-                {item.images?.jpg?.image_url && (
-                  <div className="relative w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden">
-                    <Image src={item.images.jpg.image_url} alt={item.title} fill className="object-cover" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-200 leading-tight line-clamp-2">{item.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{detail}</p>
-                  {item.score && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star size={10} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs text-slate-400">{item.score}</span>
+              return (
+                <div key={item.mal_id} className="flex gap-3 bg-[#1f2437] rounded-xl p-2.5 items-start">
+                  {item.images?.jpg?.image_url && (
+                    <div className="relative w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+                      <Image src={item.images.jpg.image_url} alt={item.title} fill className="object-cover" />
                     </div>
                   )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-200 leading-tight line-clamp-2">{item.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{detail}</p>
+                    {item.score && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star size={10} className="text-yellow-400 fill-yellow-400" />
+                        <span className="text-xs text-slate-400">{item.score}</span>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => !isAdded && handleAdd(item)}
+                    className={`flex-shrink-0 p-2 rounded-xl transition-all ${
+                      isAdded
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-blue-500/20 text-blue-400 active:bg-blue-500/40'
+                    }`}
+                  >
+                    {isAdded ? <Check size={18} /> : <Plus size={18} />}
+                  </button>
                 </div>
-                <button
-                  onClick={() => !isAdded && handleAdd(item)}
-                  className={`flex-shrink-0 p-2 rounded-xl transition-all ${
-                    isAdded
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-blue-500/20 text-blue-400 active:bg-blue-500/40'
-                  }`}
-                >
-                  {isAdded ? <Check size={18} /> : <Plus size={18} />}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
