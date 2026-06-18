@@ -1,4 +1,5 @@
 import { MediaEntry, MediaCategory, WatchStatus, Stats } from '@/types'
+import { syncEntry, deleteFromSupabase } from './sync'
 
 const STORAGE_KEY = 'otaku_tracker_data'
 
@@ -22,18 +23,23 @@ export function getEntryById(id: string): MediaEntry | undefined {
 
 export function saveEntry(entry: MediaEntry): void {
   const entries = getAllEntries()
+  const updated = { ...entry, updated_at: new Date().toISOString() }
   const idx = entries.findIndex(e => e.id === entry.id)
   if (idx >= 0) {
-    entries[idx] = { ...entry, updated_at: new Date().toISOString() }
+    entries[idx] = updated
   } else {
-    entries.push(entry)
+    entries.push(updated)
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  // Sinkron ke Supabase (fire-and-forget)
+  syncEntry(updated).catch(console.error)
 }
 
 export function deleteEntry(id: string): void {
   const entries = getAllEntries().filter(e => e.id !== id)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  // Hapus dari Supabase juga
+  deleteFromSupabase(id).catch(console.error)
 }
 
 export function updateProgress(id: string, progress: number): void {
@@ -42,12 +48,12 @@ export function updateProgress(id: string, progress: number): void {
   if (idx >= 0) {
     entries[idx].progress = progress
     entries[idx].updated_at = new Date().toISOString()
-    // Auto-complete if reached total
     if (entries[idx].total && progress >= entries[idx].total!) {
       entries[idx].status = 'completed'
       entries[idx].end_date = new Date().toISOString().split('T')[0]
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+    syncEntry(entries[idx]).catch(console.error)
   }
 }
 
@@ -65,6 +71,7 @@ export function updateStatus(id: string, status: WatchStatus): void {
       if (entries[idx].total) entries[idx].progress = entries[idx].total!
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+    syncEntry(entries[idx]).catch(console.error)
   }
 }
 

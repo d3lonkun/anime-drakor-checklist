@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import BottomNav from '@/components/layout/BottomNav'
-import TopBar from '@/components/layout/TopBar'
+import ClientLayout from '@/components/layout/ClientLayout'
 
 export const metadata: Metadata = {
   title: 'OtakuTracker - List Anime, Manga, Drakor & Dorama',
@@ -34,11 +33,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="bg-[#0d0f14] text-slate-200 antialiased">
-        <TopBar />
-        <main className="pt-14 pb-24 min-h-screen">
-          {children}
-        </main>
-        <BottomNav />
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
