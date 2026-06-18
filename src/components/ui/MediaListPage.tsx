@@ -1,8 +1,9 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { MediaCategory, MediaEntry, WatchStatus } from '@/types'
 import { getEntriesByCategory, getStats } from '@/lib/storage'
+import { SYNC_EVENT } from '@/lib/sync'
 import MediaCard from '@/components/ui/MediaCard'
 import MediaDetailModal from '@/components/ui/MediaDetailModal'
 import AddMediaModal from '@/components/ui/AddMediaModal'
@@ -12,9 +13,6 @@ import StatsBar from '@/components/ui/StatsBar'
 interface Props {
   category: MediaCategory
   showMALSearch?: boolean
-  accentClass?: string
-  gradientClass?: string
-  subtypeLabels?: Record<string, string>
 }
 
 const SUBTYPE_FILTERS: Record<string, Record<string, string>> = {
@@ -29,7 +27,7 @@ const SUBTYPE_FILTERS: Record<string, Record<string, string>> = {
   }
 }
 
-export default function MediaListPage({ category, showMALSearch = false, accentClass, gradientClass, subtypeLabels }: Props) {
+export default function MediaListPage({ category, showMALSearch = false }: Props) {
   const [entries, setEntries] = useState<MediaEntry[]>([])
   const [stats, setStats] = useState(getStats(category))
   const [filter, setFilter] = useState<WatchStatus | 'all'>('all')
@@ -45,7 +43,16 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
     setStats(getStats(category))
   }, [category])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
+
+  // FIX: dengarkan event sync dan reload otomatis
+  useEffect(() => {
+    const handler = () => load()
+    window.addEventListener(SYNC_EVENT, handler)
+    return () => window.removeEventListener(SYNC_EVENT, handler)
+  }, [load])
 
   const filtered = entries
     .filter(e => filter === 'all' || e.status === filter)
@@ -61,10 +68,8 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
 
   return (
     <div className="px-4 py-3 space-y-4 animate-fade-in">
-      {/* Stats filter bar */}
       <StatsBar stats={stats} activeFilter={filter} onFilter={setFilter} />
 
-      {/* Manga subtype filter */}
       {hasMangaSubtypes && (
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {Object.entries(SUBTYPE_FILTERS.manga).map(([key, label]) => (
@@ -83,7 +88,6 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
         </div>
       )}
 
-      {/* Search & sort */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -106,7 +110,6 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
         </select>
       </div>
 
-      {/* Add buttons */}
       <div className="flex gap-2">
         {showMALSearch && (
           <button
@@ -126,7 +129,6 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
         </button>
       </div>
 
-      {/* Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">
@@ -155,7 +157,6 @@ export default function MediaListPage({ category, showMALSearch = false, accentC
         </>
       )}
 
-      {/* Modals */}
       {selected && (
         <MediaDetailModal
           entry={selected}

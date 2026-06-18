@@ -3,7 +3,15 @@ import { MediaEntry } from '@/types'
 
 const STORAGE_KEY = 'otaku_tracker_data'
 
-// Simpan satu entry ke Supabase
+// Event name untuk memberitahu komponen agar reload data
+export const SYNC_EVENT = 'otaku-data-updated'
+
+function dispatchSyncEvent() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(SYNC_EVENT))
+  }
+}
+
 export async function syncEntry(entry: MediaEntry): Promise<void> {
   if (!isSupabaseReady || !supabase) return
   try {
@@ -37,7 +45,6 @@ export async function syncEntry(entry: MediaEntry): Promise<void> {
   }
 }
 
-// Hapus satu entry dari Supabase
 export async function deleteFromSupabase(id: string): Promise<void> {
   if (!isSupabaseReady || !supabase) return
   try {
@@ -51,7 +58,6 @@ export async function deleteFromSupabase(id: string): Promise<void> {
   }
 }
 
-// Ambil semua data dari Supabase
 export async function pullFromSupabase(): Promise<MediaEntry[] | null> {
   if (!isSupabaseReady || !supabase) return null
   try {
@@ -70,7 +76,6 @@ export async function pullFromSupabase(): Promise<MediaEntry[] | null> {
   }
 }
 
-// Upload semua data localStorage ke Supabase (migrasi pertama kali)
 export async function pushAllToSupabase(entries: MediaEntry[]): Promise<void> {
   if (!isSupabaseReady || !supabase || entries.length === 0) return
   try {
@@ -105,13 +110,16 @@ export async function pushAllToSupabase(entries: MediaEntry[]): Promise<void> {
   }
 }
 
-// Sinkron dari Supabase ke localStorage (panggil saat buka app)
+// Ambil dari Supabase → simpan ke localStorage → beritahu semua komponen
 export async function syncFromSupabaseToLocal(): Promise<boolean> {
   const data = await pullFromSupabase()
   if (data === null) return false
-  if (data.length > 0) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    return true
-  }
-  return false
+
+  // FIX: selalu update localStorage, termasuk kalau kosong (semua dihapus)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+
+  // Beritahu semua komponen untuk reload data
+  dispatchSyncEvent()
+
+  return true
 }

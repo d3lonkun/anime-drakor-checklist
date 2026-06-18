@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { isAuthenticated } from '@/lib/auth'
 import { syncFromSupabaseToLocal } from '@/lib/sync'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<'loading' | 'auth' | 'unauth'>('loading')
@@ -14,7 +15,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
     if (authed) {
       setStatus('auth')
-      // Sinkron data dari Supabase di background saat buka app
+      // Sync pertama saat buka app
       syncFromSupabaseToLocal().catch(console.error)
     } else if (pathname !== '/login') {
       router.replace('/login')
@@ -24,7 +25,42 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, router])
 
-  // Loading spinner
+  // Sync saat user balik ke tab/window (visibility change)
+  useEffect(() => {
+    if (status !== 'auth') return
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        // User balik ke tab ini — sync dari Supabase
+        syncFromSupabaseToLocal().catch(console.error)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [status])
+
+  // Supabase Realtime — update otomatis saat ada perubahan di device lain
+  useEffect(() => {
+    if (status !== 'auth' || !supabase) return
+
+    const channel = supabase
+      .channel('realtime-media-entries')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'media_entries' },
+        async () => {
+          // Ada perubahan di Supabase → sync ke localStorage dan update UI
+          await syncFromSupabaseToLocal()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [status])
+
   if (status === 'loading') {
     return (
       <div className="fixed inset-0 bg-[#0d0f14] flex flex-col items-center justify-center gap-3">
@@ -34,12 +70,10 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Halaman login tampil tanpa proteksi
   if (pathname === '/login') {
     return <>{children}</>
   }
 
-  // Halaman lain hanya tampil jika sudah login
   if (status !== 'auth') return null
 
   return <>{children}</>
