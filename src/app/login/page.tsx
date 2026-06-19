@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { KeyRound, Loader2, Eye, EyeOff } from 'lucide-react'
 import { setAuthenticated, verifyCode } from '@/lib/auth'
@@ -7,6 +8,9 @@ import { pullFromSupabase, pushAllToSupabase } from '@/lib/sync'
 import { getAllEntries } from '@/lib/storage'
 
 const STORAGE_KEY = 'otaku_tracker_data'
+
+// Ganti sesuai nama kamu, atau set lewat NEXT_PUBLIC_USER_NAME di Vercel
+const DISPLAY_NAME = process.env.NEXT_PUBLIC_USER_NAME || 'GEFRANDO'
 
 export default function LoginPage() {
   const [code, setCode] = useState('')
@@ -18,34 +22,28 @@ export default function LoginPage() {
 
   async function handleLogin() {
     if (!code.trim()) {
-      setError('Masukkan ID kamu dulu!')
+      setError('Masukkan Secret ID dulu!')
       return
     }
-
     setLoading(true)
     setError('')
 
     const ok = await verifyCode(code.trim())
-
     if (!ok) {
-      setError('ID salah! Coba lagi.')
+      setError('Secret ID salah! Coba lagi.')
       setLoading(false)
       return
     }
 
-    // ID benar — simpan status login
     setAuthenticated(true)
     setSyncing(true)
 
-    // Sinkron data dengan Supabase
     const supabaseData = await pullFromSupabase()
     const localData = getAllEntries()
 
     if (supabaseData && supabaseData.length > 0) {
-      // Supabase punya data → pakai data Supabase (sumber kebenaran)
       localStorage.setItem(STORAGE_KEY, JSON.stringify(supabaseData))
     } else if (localData.length > 0) {
-      // Supabase kosong, localStorage ada data → upload ke Supabase (migrasi)
       await pushAllToSupabase(localData)
     }
 
@@ -53,89 +51,110 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] flex flex-col items-center justify-center px-6">
-      {/* Logo */}
-      <div className="mb-8 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-blue-500/30">
-          <span className="text-4xl">🎌</span>
-        </div>
-        <h1
-          className="text-3xl font-black text-white"
-          style={{ fontFamily: 'Syne, sans-serif' }}
+    <div className="relative min-h-screen flex items-center justify-center px-5 overflow-hidden">
+      {/* Background ilustrasi senja + torii (original, kode SVG) */}
+      <LoginBackgroundLazy />
+
+      {/* Kartu login — glassmorphism */}
+      <div className="relative z-10 w-full max-w-sm">
+        <div
+          className="rounded-[28px] px-7 py-9 flex flex-col items-center text-center shadow-2xl"
+          style={{
+            background: 'rgba(20, 18, 22, 0.42)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            border: '1px solid rgba(255,255,255,0.14)',
+          }}
         >
-          OtakuTracker
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Masukkan ID kamu untuk lanjut
-        </p>
-      </div>
+          {/* Avatar */}
+          <div className="relative w-24 h-24 rounded-full overflow-hidden border-[3px] border-white/85 shadow-lg mb-5">
+            <Image
+              src="/avatar.jpg"
+              alt="Avatar"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
 
-      {/* Card login */}
-      <div className="w-full max-w-sm bg-[#1a1e2e] rounded-2xl p-6 border border-[#1e2538] shadow-2xl">
-        <label className="block text-xs text-slate-400 font-medium mb-2 uppercase tracking-widest">
-          ID Akses
-        </label>
-
-        <div className="relative mb-4">
-          <KeyRound
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-          />
-          <input
-            type={show ? 'text' : 'password'}
-            value={code}
-            onChange={e => {
-              setCode(e.target.value)
-              setError('')
-            }}
-            onKeyDown={e => e.key === 'Enter' && !loading && handleLogin()}
-            placeholder="Masukkan ID kamu..."
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            className="w-full bg-[#0d0f14] border border-[#2a3050] rounded-xl pl-10 pr-12 py-4 text-slate-200 text-base outline-none focus:border-blue-500/60 transition-colors placeholder-[#4a5568]"
-          />
-          <button
-            type="button"
-            onClick={() => setShow(s => !s)}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+          {/* Greeting */}
+          <h1
+            className="text-white text-[28px] leading-tight mb-6 drop-shadow-md"
+            style={{ fontFamily: "'Zen Maru Gothic', sans-serif", fontWeight: 700 }}
           >
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            Hi {DISPLAY_NAME}!
+          </h1>
+
+          {/* Secret ID input */}
+          <div className="w-full relative mb-2">
+            <KeyRound
+              size={17}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55 pointer-events-none"
+            />
+            <input
+              type={show ? 'text' : 'password'}
+              value={code}
+              onChange={e => { setCode(e.target.value); setError('') }}
+              onKeyDown={e => e.key === 'Enter' && !loading && handleLogin()}
+              placeholder="SECRET ID"
+              autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              className="w-full bg-white/10 border border-white/25 rounded-2xl pl-11 pr-11 py-3.5 text-white text-sm tracking-widest uppercase placeholder-white/45 outline-none focus:border-white/50 focus:bg-white/14 transition-all"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShow(s => !s)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+            >
+              {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+
+          {error && (
+            <p className="text-rose-200 text-xs mb-3 mt-1">{error}</p>
+          )}
+
+          {/* Tombol Masuk */}
+          <button
+            onClick={handleLogin}
+            disabled={loading || syncing}
+            className="w-full mt-4 py-3.5 rounded-2xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              background: 'linear-gradient(135deg, #ef5b4a, #d8432f)',
+              boxShadow: '0 8px 24px -6px rgba(216, 67, 47, 0.55)',
+            }}
+          >
+            {syncing ? (
+              <><Loader2 size={16} className="animate-spin" /> MENYINKRON...</>
+            ) : loading ? (
+              <><Loader2 size={16} className="animate-spin" /> MEMVERIFIKASI...</>
+            ) : (
+              'MASUK'
+            )}
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 px-3 py-2.5 bg-red-500/10 border border-red-500/20 rounded-xl">
-            <p className="text-red-400 text-sm">{error}</p>
-          </div>
-        )}
-
-        <button
-          onClick={handleLogin}
-          disabled={loading || syncing}
-          className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:opacity-90 transition-opacity disabled:opacity-60 shadow-lg shadow-blue-500/20"
-        >
-          {syncing ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Menyinkron data...
-            </>
-          ) : loading ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Memverifikasi...
-            </>
-          ) : (
-            'Masuk'
-          )}
-        </button>
+        <p className="text-center text-white/35 text-[11px] mt-6 tracking-wide">
+          Hanya untuk penggunaan pribadi 🔒
+        </p>
       </div>
 
-      <p className="text-[#2a3050] text-xs mt-8 text-center">
-        Hanya untuk penggunaan pribadi 🔒
-      </p>
+      {/* Font import */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+      />
     </div>
   )
+}
+
+// Lazy import sederhana supaya jelas terpisah dari logic auth
+import LoginBackground from '@/components/ui/LoginBackground'
+function LoginBackgroundLazy() {
+  return <LoginBackground />
 }
