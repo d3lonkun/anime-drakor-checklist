@@ -1,193 +1,164 @@
 'use client'
 
 /**
- * Background dekoratif "senja kuil" — ilustrasi original berbasis SVG.
- * Bukan reproduksi karya lain; semua bentuk (langit, gunung, pohon,
- * gerbang torii, lentera) digambar manual dengan path/shape SVG.
+ * Background "malam pegunungan" — ilustrasi original gaya pixel-art,
+ * digambar manual dengan shape SVG (bukan reproduksi karya lain).
  */
 export default function LoginBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-[#11151c]">
+    <div className="absolute inset-0 overflow-hidden bg-[#10122a]">
       <svg
         viewBox="0 0 1200 1600"
         preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
+        shapeRendering="crispEdges"
       >
         <defs>
-          {/* Langit senja */}
-          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1c2748" />
-            <stop offset="32%" stopColor="#4a4368" />
-            <stop offset="52%" stopColor="#9a6f8d" />
-            <stop offset="68%" stopColor="#e2917c" />
-            <stop offset="80%" stopColor="#f3bb7d" />
-            <stop offset="100%" stopColor="#171c16" />
+          {/* Langit malam */}
+          <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#181b42" />
+            <stop offset="45%" stopColor="#262b5c" />
+            <stop offset="100%" stopColor="#2f3570" />
           </linearGradient>
 
-          {/* Glow matahari */}
-          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#fff3d6" stopOpacity="1" />
-            <stop offset="35%" stopColor="#ffd98e" stopOpacity="0.85" />
-            <stop offset="70%" stopColor="#ffb877" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#ffb877" stopOpacity="0" />
+          {/* Glow bulan */}
+          <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#dfe6ff" stopOpacity="0.9" />
+            <stop offset="40%" stopColor="#a7b3ec" stopOpacity="0.55" />
+            <stop offset="75%" stopColor="#6c79c2" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#6c79c2" stopOpacity="0" />
           </radialGradient>
 
-          {/* Gradasi gunung jauh */}
-          <linearGradient id="mountain" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5a4a5e" />
-            <stop offset="100%" stopColor="#3a3142" />
+          {/* Air danau */}
+          <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#4a5184" />
+            <stop offset="100%" stopColor="#2a2f57" />
           </linearGradient>
 
-          {/* Vignette gelap di tepi untuk fokus ke kartu login */}
-          <radialGradient id="vignette" cx="50%" cy="42%" r="75%">
+          <filter id="waterBlur" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" />
+          </filter>
+
+          {/* Vignette */}
+          <radialGradient id="vignette2" cx="50%" cy="40%" r="78%">
             <stop offset="0%" stopColor="#000000" stopOpacity="0" />
-            <stop offset="70%" stopColor="#000000" stopOpacity="0.15" />
+            <stop offset="68%" stopColor="#000000" stopOpacity="0.12" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0.55" />
           </radialGradient>
         </defs>
 
         {/* Langit */}
-        <rect x="0" y="0" width="1200" height="1600" fill="url(#sky)" />
+        <rect x="0" y="0" width="1200" height="980" fill="url(#nightSky)" />
 
-        {/* Matahari + sinar */}
-        <g opacity="0.95">
-          <circle cx="930" cy="620" r="230" fill="url(#sunGlow)" className="sun-pulse" />
-          <circle cx="930" cy="620" r="58" fill="#fff6e0" opacity="0.95" />
-          <rect x="0" y="612" width="1200" height="3" fill="#fff3d2" opacity="0.35" />
-          <rect x="0" y="600" width="1200" height="1.5" fill="#ffe7b8" opacity="0.25" />
-        </g>
+        {/* Scene atas (langit + bulan + gunung) — dipakai ulang utk refleksi */}
+        <g id="upperScene">
+          {/* Glow awan di sekitar bulan */}
+          <ellipse cx="430" cy="430" rx="420" ry="320" fill="url(#moonGlow)" className="moon-twinkle" />
 
-        {/* Awan tipis */}
-        <g fill="#f7e3da" opacity="0.28">
-          <ellipse cx="330" cy="260" rx="170" ry="26" />
-          <ellipse cx="470" cy="290" rx="120" ry="18" />
-          <ellipse cx="760" cy="190" rx="140" ry="20" />
-        </g>
+          {/* Bulan */}
+          <circle cx="980" cy="160" r="70" fill="#eef1fb" />
+          <circle cx="958" cy="145" r="11" fill="#c9cfe8" opacity="0.55" />
+          <circle cx="1002" cy="178" r="7" fill="#c9cfe8" opacity="0.5" />
+          <circle cx="995" cy="135" r="5" fill="#c9cfe8" opacity="0.45" />
 
-        {/* Siluet gunung jauh */}
-        <path
-          d="M0,780 L120,700 L240,760 L380,660 L520,740 L640,650 L760,730 L880,680 L1000,750 L1120,690 L1200,740 L1200,900 L0,900 Z"
-          fill="url(#mountain)"
-          opacity="0.55"
-        />
+          {/* Bintang (gaya pixel — kotak kecil) */}
+          <g fill="#f3f5ff">
+            <rect x="60" y="60" width="6" height="6" className="twinkle t1" />
+            <rect x="180" y="120" width="5" height="5" opacity="0.7" />
+            <rect x="320" y="50" width="6" height="6" className="twinkle t2" />
+            <rect x="520" y="90" width="5" height="5" opacity="0.6" />
+            <rect x="700" y="40" width="6" height="6" className="twinkle t3" />
+            <rect x="840" y="110" width="5" height="5" opacity="0.65" />
+            <rect x="1120" y="70" width="6" height="6" className="twinkle t1" />
+            <rect x="1180" y="220" width="5" height="5" opacity="0.55" />
+            <rect x="40" y="280" width="5" height="5" opacity="0.5" />
+            <rect x="240" y="220" width="5" height="5" className="twinkle t2" />
+            <rect x="600" y="200" width="5" height="5" opacity="0.6" />
+            <rect x="900" y="280" width="6" height="6" className="twinkle t3" />
+            <rect x="1050" y="330" width="5" height="5" opacity="0.55" />
+            <rect x="150" y="350" width="5" height="5" opacity="0.45" />
+            <rect x="780" y="350" width="5" height="5" opacity="0.5" />
+            <rect x="380" y="160" width="5" height="5" opacity="0.55" />
+          </g>
 
-        {/* Klaster pohon kiri */}
-        <g fill="#0d1410">
-          <ellipse cx="90" cy="760" rx="150" ry="220" opacity="0.55" />
-          <ellipse cx="60" cy="880" rx="190" ry="260" opacity="0.7" />
-          <ellipse cx="180" cy="900" rx="160" ry="240" opacity="0.85" />
-          <ellipse cx="40" cy="1020" rx="220" ry="300" />
-          <ellipse cx="230" cy="1060" rx="200" ry="280" />
-        </g>
-
-        {/* Klaster pohon kanan */}
-        <g fill="#0d1410">
-          <ellipse cx="1120" cy="740" rx="160" ry="220" opacity="0.5" />
-          <ellipse cx="1160" cy="860" rx="200" ry="260" opacity="0.68" />
-          <ellipse cx="1010" cy="900" rx="170" ry="240" opacity="0.85" />
-          <ellipse cx="1170" cy="1010" rx="230" ry="300" />
-          <ellipse cx="990" cy="1050" rx="200" ry="280" />
-        </g>
-
-        {/* Lentera batu kecil */}
-        <g fill="#1a1612" opacity="0.9">
-          <rect x="985" y="1180" width="34" height="14" rx="2" />
-          <rect x="993" y="1140" width="18" height="44" />
-          <rect x="980" y="1120" width="44" height="16" rx="3" />
-          <circle cx="1002" cy="1100" r="20" />
-          <rect x="988" y="1075" width="28" height="14" rx="2" />
-        </g>
-
-        {/* Gerbang Torii */}
-        <g fill="#6b2f2b">
-          {/* Pilar */}
-          <path d="M430,1340 L468,1340 L478,940 L440,940 Z" />
-          <path d="M770,1340 L808,1340 L798,940 L760,940 Z" />
-          {/* Palang bawah */}
-          <rect x="420" y="985" width="400" height="22" rx="2" fill="#5c2622" />
-          {/* Palang atas melengkung */}
+          {/* Pegunungan belakang */}
           <path
-            d="M380,930 Q619,880 858,930 L858,958 Q619,912 380,958 Z"
-            fill="#6b2f2b"
+            d="M0,940 L70,880 L150,920 L230,820 L300,870 L380,790 L470,860
+               L560,800 L650,870 L730,810 L820,880 L900,830 L980,900
+               L1060,840 L1140,890 L1200,860 L1200,1000 L0,1000 Z"
+            fill="#1b2050"
+            opacity="0.85"
           />
+
+          {/* Pegunungan depan — jagged dengan tonjolan rumput */}
           <path
-            d="M380,930 Q619,880 858,930 L858,944 Q619,898 380,944 Z"
-            fill="#7d3a34"
-            opacity="0.7"
+            d="M0,980
+               L10,965 L22,978 L35,955 L48,978 L60,960
+               L90,975 L120,940 L150,965
+               L185,860 L215,930 L240,900
+               L260,920 L300,870 L330,920
+               L360,895 L420,820 L480,900
+               L520,870 L560,910 L600,860
+               L640,900 L680,790 L740,890
+               L780,860 L820,905 L850,880
+               L880,915 L900,895 L930,915
+               L960,860 L1000,910 L1040,875
+               L1070,905 L1100,885 L1130,905
+               L1160,890 L1180,910 L1200,895
+               L1200,1000 L0,1000 Z"
+            fill="#0a0c20"
           />
-          {/* Plakat tengah */}
-          <rect x="590" y="935" width="58" height="44" rx="2" fill="#2b211a" />
-          <rect x="598" y="943" width="42" height="28" rx="1" fill="#3a2c20" />
         </g>
 
-        {/* Tangga batu bawah */}
-        <g fill="#2a2a26" opacity="0.9">
-          <rect x="0" y="1420" width="1200" height="40" />
-          <rect x="0" y="1380" width="1200" height="34" opacity="0.85" />
-          <rect x="0" y="1340" width="1200" height="30" opacity="0.7" />
+        {/* Garis horizon */}
+        <rect x="0" y="978" width="1200" height="4" fill="#10122a" opacity="0.6" />
+
+        {/* Danau (dasar) */}
+        <rect x="0" y="982" width="1200" height="618" fill="url(#lake)" />
+
+        {/* Refleksi (scene atas dibalik, diburamkan) */}
+        <g
+          transform="translate(0, 1964) scale(1, -1)"
+          opacity="0.4"
+          filter="url(#waterBlur)"
+        >
+          <use href="#upperScene" />
+        </g>
+
+        {/* Garis riak air horizontal */}
+        <g stroke="#dfe6ff" strokeOpacity="0.08" strokeWidth="3">
+          <line x1="0" y1="1080" x2="1200" y2="1080" />
+          <line x1="0" y1="1180" x2="1200" y2="1180" />
+          <line x1="0" y1="1300" x2="1200" y2="1300" />
+          <line x1="0" y1="1420" x2="1200" y2="1420" />
+          <line x1="0" y1="1540" x2="1200" y2="1540" />
         </g>
 
         {/* Vignette */}
-        <rect x="0" y="0" width="1200" height="1600" fill="url(#vignette)" />
+        <rect x="0" y="0" width="1200" height="1600" fill="url(#vignette2)" />
       </svg>
 
-      {/* Partikel mengambang (kunang-kunang / kelopak) */}
-      <div className="particles" aria-hidden="true">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <span key={i} className={`particle particle-${i}`} />
-        ))}
-      </div>
-
       <style jsx>{`
-        .sun-pulse {
-          animation: sunPulse 6s ease-in-out infinite;
-          transform-origin: 930px 620px;
+        .twinkle {
+          animation: twinkle 3.5s ease-in-out infinite;
         }
-        @keyframes sunPulse {
-          0%, 100% { opacity: 0.9; }
+        .t1 { animation-delay: 0s; }
+        .t2 { animation-delay: 1.1s; }
+        .t3 { animation-delay: 2.2s; }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
-
-        .particles {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
+        .moon-twinkle {
+          animation: glowPulse 7s ease-in-out infinite;
         }
-        .particle {
-          position: absolute;
-          bottom: -10px;
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: #ffe2ad;
-          opacity: 0;
-          box-shadow: 0 0 6px 1px rgba(255, 210, 140, 0.7);
-          animation: floatUp linear infinite;
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.85; }
+          50% { opacity: 1; }
         }
-        .particle-0 { left: 12%; animation-duration: 11s; animation-delay: 0s; }
-        .particle-1 { left: 22%; animation-duration: 14s; animation-delay: 2s; }
-        .particle-2 { left: 35%; animation-duration: 9s;  animation-delay: 4s; }
-        .particle-3 { left: 48%; animation-duration: 13s; animation-delay: 1s; }
-        .particle-4 { left: 58%; animation-duration: 10s; animation-delay: 5s; }
-        .particle-5 { left: 68%; animation-duration: 15s; animation-delay: 3s; }
-        .particle-6 { left: 78%; animation-duration: 12s; animation-delay: 6s; }
-        .particle-7 { left: 85%; animation-duration: 9s;  animation-delay: 2.5s; }
-        .particle-8 { left: 30%; animation-duration: 16s; animation-delay: 7s; }
-        .particle-9 { left: 64%; animation-duration: 11s; animation-delay: 8s; }
-
-        @keyframes floatUp {
-          0% { transform: translateY(0) translateX(0); opacity: 0; }
-          10% { opacity: 0.8; }
-          50% { transform: translateY(-48vh) translateX(12px); opacity: 0.6; }
-          90% { opacity: 0.2; }
-          100% { transform: translateY(-92vh) translateX(-8px); opacity: 0; }
-        }
-
         @media (prefers-reduced-motion: reduce) {
-          .sun-pulse, .particle {
-            animation: none !important;
-          }
+          .twinkle, .moon-twinkle { animation: none !important; }
         }
       `}</style>
     </div>
