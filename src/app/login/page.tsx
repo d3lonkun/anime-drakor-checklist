@@ -6,10 +6,9 @@ import { KeyRound, Loader2, Eye, EyeOff } from 'lucide-react'
 import { setAuthenticated, verifyCode } from '@/lib/auth'
 import { pullFromSupabase, pushAllToSupabase } from '@/lib/sync'
 import { getAllEntries } from '@/lib/storage'
+import LoginBackground from '@/components/ui/LoginBackground'
 
 const STORAGE_KEY = 'otaku_tracker_data'
-
-// Ganti sesuai nama kamu, atau set lewat NEXT_PUBLIC_USER_NAME di Vercel
 const DISPLAY_NAME = process.env.NEXT_PUBLIC_USER_NAME || 'GEFRANDO'
 
 export default function LoginPage() {
@@ -52,10 +51,8 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-5 overflow-hidden">
-      {/* Background ilustrasi senja + torii (original, kode SVG) */}
-      <LoginBackgroundLazy />
+      <LoginBackground />
 
-      {/* Kartu login — glassmorphism */}
       <div className="relative z-10 w-full max-w-sm">
         <div
           className="rounded-[28px] px-7 py-9 flex flex-col items-center text-center shadow-2xl"
@@ -66,18 +63,10 @@ export default function LoginPage() {
             border: '1px solid rgba(255,255,255,0.14)',
           }}
         >
-          {/* Avatar */}
           <div className="relative w-24 h-24 rounded-full overflow-hidden border-[3px] border-white/85 shadow-lg mb-5">
-            <Image
-              src="/avatar.jpg"
-              alt="Avatar"
-              fill
-              className="object-cover"
-              priority
-            />
+            <Image src="/avatar.jpg" alt="Avatar" fill className="object-cover" priority />
           </div>
 
-          {/* Greeting */}
           <h1
             className="text-white text-[28px] leading-tight mb-6 drop-shadow-md"
             style={{ fontFamily: "'Zen Maru Gothic', sans-serif", fontWeight: 700 }}
@@ -85,12 +74,8 @@ export default function LoginPage() {
             Hi {DISPLAY_NAME}!
           </h1>
 
-          {/* Secret ID input */}
           <div className="w-full relative mb-2">
-            <KeyRound
-              size={17}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55 pointer-events-none"
-            />
+            <KeyRound size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55 pointer-events-none" />
             <input
               type={show ? 'text' : 'password'}
               value={code}
@@ -114,19 +99,16 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {error && (
-            <p className="text-rose-200 text-xs mb-3 mt-1">{error}</p>
-          )}
+          {error && <p className="text-rose-200 text-xs mb-3 mt-1">{error}</p>}
 
-          {/* Tombol Masuk */}
           <button
             onClick={handleLogin}
             disabled={loading || syncing}
             className="w-full mt-4 py-3.5 rounded-2xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              background: 'linear-gradient(135deg, #ef5b4a, #d8432f)',
-              boxShadow: '0 8px 24px -6px rgba(216, 67, 47, 0.55)',
+              background: 'linear-gradient(135deg, #5b6cd9, #3d4ab0)',
+              boxShadow: '0 8px 24px -6px rgba(61, 74, 176, 0.55)',
             }}
           >
             {syncing ? (
@@ -139,22 +121,15 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-white/35 text-[11px] mt-6 tracking-wide">
+        <p className="text-center text-white/40 text-[11px] mt-6 tracking-wide">
           Hanya untuk penggunaan pribadi 🔒
         </p>
       </div>
 
-      {/* Font import */}
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=DM+Sans:wght@400;500;600;700&display=swap"
       />
     </div>
   )
-}
-
-// Lazy import sederhana supaya jelas terpisah dari logic auth
-import LoginBackground from '@/components/ui/LoginBackground'
-function LoginBackgroundLazy() {
-  return <LoginBackground />
 }
