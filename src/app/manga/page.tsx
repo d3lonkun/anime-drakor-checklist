@@ -1,5 +1,16 @@
-import MediaListPage from '@/components/ui/MediaListPage'
+import { BookOpen } from 'lucide-react'
+import CategoryListPage from '@/components/ui/CategoryListPage'
 
 export default function MangaPage() {
-  return <MediaListPage category="manga" showMALSearch={true} />
+  return (
+    <CategoryListPage
+      category="manga"
+      title="Komik"
+      subtitle="Baca komik dan manga seru"
+      icon={BookOpen}
+      showMALSearch
+      progressLabel="Sedang dibaca"
+      unitLabel="Ch"
+    />
+  )
 }

@@ -1,5 +1,16 @@
-import MediaListPage from '@/components/ui/MediaListPage'
+import { Tv } from 'lucide-react'
+import CategoryListPage from '@/components/ui/CategoryListPage'
 
 export default function AnimePage() {
-  return <MediaListPage category="anime" showMALSearch={true} />
+  return (
+    <CategoryListPage
+      category="anime"
+      title="Anime"
+      subtitle="Koleksi anime favoritmu"
+      icon={Tv}
+      showMALSearch
+      progressLabel="Sedang di nonton"
+      unitLabel="Ep"
+    />
+  )
 }

@@ -1,65 +1,54 @@
 'use client'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { Search, Settings, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
-import { syncFromSupabaseToLocal } from '@/lib/sync'
-
-const PAGE_TITLES: Record<string, string> = {
-  '/': 'OtakuTracker',
-  '/anime': 'Anime',
-  '/manga': 'Komik',
-  '/drakor': 'Drama Korea',
-  '/dorama': 'Dorama',
-  '/search': 'Cari',
-  '/settings': 'Pengaturan',
-}
-
-const accentMap: Record<string, string> = {
-  '/anime': 'from-blue-500 to-violet-500',
-  '/manga': 'from-amber-500 to-red-500',
-  '/drakor': 'from-pink-500 to-violet-500',
-  '/dorama': 'from-cyan-500 to-emerald-500',
-}
+import Link from 'next/link'
+import Image from 'next/image'
+import { Search, Settings } from 'lucide-react'
 
 export default function TopBar() {
-  const pathname = usePathname()
-  const title = PAGE_TITLES[pathname] || 'OtakuTracker'
-  const accent = accentMap[pathname] || 'from-blue-500 to-violet-500'
-  const [syncing, setSyncing] = useState(false)
-
-  async function handleManualSync() {
-    if (syncing) return
-    setSyncing(true)
-    await syncFromSupabaseToLocal()
-    setSyncing(false)
-  }
+  const [imgError, setImgError] = useState(false)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-[#1e2538]">
-      <div className="flex items-center justify-between px-4 h-14">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-[#0a0612]/90 backdrop-blur-xl border-b border-[#1c1530]">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
+        <Link href="/" className="text-xl font-black tracking-tight">
+          <span className="text-white">My </span>
+          <span className="text-violet-400">Tracker</span>
+        </Link>
+
         <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${accent} flex items-center justify-center`}>
-            <span className="text-white text-xs font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>O</span>
-          </div>
-          <span className="font-bold text-base text-slate-100" style={{ fontFamily: 'Syne, sans-serif' }}>
-            {title}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          {/* Tombol sync manual */}
-          <button
-            onClick={handleManualSync}
-            className="p-2 rounded-xl hover:bg-white/5 transition-colors text-slate-400"
-            title="Sync data"
+          <Link
+            href="/search"
+            className="p-2.5 rounded-xl hover:bg-white/5 transition-colors text-slate-400 hover:text-slate-200"
+            title="Cari"
           >
-            <RefreshCw size={18} className={syncing ? 'animate-spin text-blue-400' : ''} />
-          </button>
-          <Link href="/search" className="p-2 rounded-xl hover:bg-white/5 transition-colors text-slate-400">
-            <Search size={20} />
+            <Search size={19} />
           </Link>
-          <Link href="/settings" className={`p-2 rounded-xl hover:bg-white/5 transition-colors ${pathname === '/settings' ? 'text-blue-400' : 'text-slate-400'}`}>
-            <Settings size={20} />
+
+          <Link
+            href="/settings"
+            className="w-9 h-9 rounded-full border-2 border-violet-500/50 overflow-hidden flex items-center justify-center bg-violet-500/10 hover:border-violet-400 transition-colors"
+            title="Profil"
+          >
+            {!imgError ? (
+              <Image
+                src="/avatar.jpg"
+                alt="Profil"
+                width={36}
+                height={36}
+                className="object-cover w-full h-full"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <span className="text-violet-300 text-xs font-bold">U</span>
+            )}
+          </Link>
+
+          <Link
+            href="/settings"
+            className="p-2.5 rounded-xl border border-[#241a3a] hover:bg-white/5 transition-colors text-slate-300"
+            title="Pengaturan"
+          >
+            <Settings size={18} />
           </Link>
         </div>
       </div>

@@ -1,158 +1,147 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { BarChart3, BookOpen } from 'lucide-react'
-import { getStats, getAllEntries, STATUS_LABELS } from '@/lib/storage'
+import { motion } from 'framer-motion'
+import { LayoutGrid, Play, CheckCircle2, Tv, Clapperboard, BookOpen, Video, ChevronRight, Folder } from 'lucide-react'
+import { getStats } from '@/lib/storage'
 import { SYNC_EVENT } from '@/lib/sync'
-import { Stats, MediaEntry } from '@/types'
+import StatCard from '@/components/ui/StatCard'
 
 const CATEGORIES = [
-  { href: '/anime', label: 'Anime', emoji: '🎌', gradient: 'from-blue-600/30 to-violet-600/20', border: 'border-blue-500/20', desc: 'Series & Film Jepang' },
-  { href: '/manga', label: 'Komik', emoji: '📚', gradient: 'from-amber-600/30 to-red-600/20', border: 'border-amber-500/20', desc: 'Manga, Manhwa, Manhua' },
-  { href: '/drakor', label: 'Drakor', emoji: '💝', gradient: 'from-pink-600/30 to-violet-600/20', border: 'border-pink-500/20', desc: 'Drama Korea' },
-  { href: '/dorama', label: 'Dorama', emoji: '🎭', gradient: 'from-cyan-600/30 to-emerald-600/20', border: 'border-cyan-500/20', desc: 'Drama Jepang' },
-]
+  { key: 'anime', href: '/anime', label: 'Anime', desc: 'Koleksi anime favoritmu', icon: Tv },
+  { key: 'drakor', href: '/drakor', label: 'Drakor', desc: 'Drama Korea pilihan terbaik', icon: Clapperboard },
+  { key: 'manga', href: '/manga', label: 'Komiki', desc: 'Baca komik dan manga seru', icon: BookOpen },
+  { key: 'dorama', href: '/dorama', label: 'Dorama', desc: 'Drama Jepang favoritmu', icon: Video },
+] as const
 
-function loadAllData() {
+function loadAll() {
   return {
-    stats: getStats(),
-    catStats: {
-      anime: getStats('anime'),
-      manga: getStats('manga'),
-      drakor: getStats('drakor'),
-      dorama: getStats('dorama'),
-    },
-    recent: getAllEntries()
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .slice(0, 5),
+    total: getStats(),
+    anime: getStats('anime'),
+    drakor: getStats('drakor'),
+    manga: getStats('manga'),
+    dorama: getStats('dorama'),
   }
 }
 
 export default function HomePage() {
-  const [data, setData] = useState(loadAllData)
+  const [data, setData] = useState(loadAll)
 
-  const load = useCallback(() => {
-    setData(loadAllData())
-  }, [])
+  const load = useCallback(() => setData(loadAll()), [])
 
   useEffect(() => { load() }, [load])
-
-  // Dengarkan event dari SyncProvider → reload otomatis
   useEffect(() => {
     const handler = () => load()
     window.addEventListener(SYNC_EVENT, handler)
     return () => window.removeEventListener(SYNC_EVENT, handler)
   }, [load])
 
-  const { stats, catStats, recent } = data
-
   return (
-    <div className="px-4 py-4 space-y-6 animate-fade-in">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600/20 via-violet-600/10 to-transparent rounded-2xl p-5 border border-blue-500/20">
-        <div className="absolute top-0 right-0 text-6xl opacity-20 -translate-y-2 translate-x-2">🎌</div>
-        <p className="text-xs text-blue-400 font-medium mb-1 uppercase tracking-wider">Selamat Datang</p>
-        <h1 className="text-xl font-black text-slate-100 mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>OtakuTracker</h1>
-        <p className="text-sm text-slate-400">Lacak semua tontonan & bacaan kamu 📺📖</p>
-        <div className="grid grid-cols-3 gap-2 mt-4">
-          <div className="bg-black/20 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.total}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total</p>
-          </div>
-          <div className="bg-black/20 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-black text-blue-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.watching}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Sedang Nonton</p>
-          </div>
-          <div className="bg-black/20 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-black text-green-400" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.completed}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Selesai</p>
-          </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-7">
+      {/* Kategori header */}
+      <div>
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-2 mb-3"
+        >
+          <LayoutGrid size={17} className="text-violet-400" />
+          <h2 className="text-sm font-semibold text-slate-300">Kategori</h2>
+        </motion.div>
+
+        {/* Stat cards keseluruhan */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <StatCard
+            icon={LayoutGrid}
+            label="Total semua"
+            value={data.total.total}
+            sublabel="Semua anime, drama, komik, dorama"
+            delay={0}
+          />
+          <StatCard
+            icon={Play}
+            label="Sedang ditonton"
+            value={data.total.watching}
+            sublabel="Lanjutkan tontonanmu"
+            delay={0.07}
+          />
+          <StatCard
+            icon={CheckCircle2}
+            label="Selesai"
+            value={data.total.completed}
+            sublabel="Tontonan yang telah selesai"
+            delay={0.14}
+          />
         </div>
       </div>
 
-      {/* Categories */}
+      {/* Perkategori */}
       <div>
-        <h2 className="section-title text-slate-300 mb-3">Kategori</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {CATEGORIES.map(cat => {
-            const cs = catStats[cat.href.slice(1) as keyof typeof catStats]
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="flex items-center gap-2 mb-3"
+        >
+          <Folder size={17} className="text-violet-400" />
+          <h2 className="text-sm font-semibold text-slate-300">Perkategori</h2>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {CATEGORIES.map((cat, i) => {
+            const cs = data[cat.key]
+            const Icon = cat.icon
             return (
-              <Link key={cat.href} href={cat.href}
-                className={`bg-gradient-to-br ${cat.gradient} rounded-2xl p-4 border ${cat.border} card-hover block`}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">{cat.emoji}</span>
-                  <span className="text-2xl font-black text-white/80" style={{ fontFamily: 'Syne, sans-serif' }}>{cs?.total || 0}</span>
+              <motion.div
+                key={cat.key}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 + i * 0.08, duration: 0.45, ease: 'easeOut' }}
+                whileHover={{ y: -4 }}
+                className="bg-[#150f24] border border-[#241a3a] hover:border-violet-500/40 rounded-2xl p-5 transition-colors flex flex-col"
+              >
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center border mb-4"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(168,85,247,0.2), rgba(168,85,247,0.05))',
+                    borderColor: 'rgba(168,85,247,0.35)',
+                    boxShadow: '0 0 22px -4px rgba(168,85,247,0.5)',
+                  }}
+                >
+                  <Icon size={24} className="text-violet-300" />
                 </div>
-                <p className="font-bold text-slate-200 text-sm" style={{ fontFamily: 'Syne, sans-serif' }}>{cat.label}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{cat.desc}</p>
-                {cs && cs.watching > 0 && (
-                  <div className="mt-2 flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    <span className="text-[10px] text-blue-400">{cs.watching} aktif</span>
+
+                <h3 className="text-lg font-bold text-white mb-1">{cat.label}</h3>
+                <p className="text-xs text-slate-500 mb-4">{cat.desc}</p>
+
+                <div className="grid grid-cols-3 gap-2 pb-4 mb-4 border-b border-[#241a3a]">
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Total</p>
+                    <p className="text-base font-bold text-violet-300">{cs.total}</p>
                   </div>
-                )}
-              </Link>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Aktif</p>
+                    <p className="text-base font-bold text-violet-300">{cs.watching}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Selesai</p>
+                    <p className="text-base font-bold text-violet-300">{cs.completed}</p>
+                  </div>
+                </div>
+
+                <Link
+                  href={cat.href}
+                  className="mt-auto flex items-center justify-between px-4 py-2.5 rounded-xl border border-[#2a1f44] text-sm text-slate-300 hover:bg-violet-500/10 hover:border-violet-500/40 transition-colors"
+                >
+                  Lihat koleksi
+                  <ChevronRight size={15} />
+                </Link>
+              </motion.div>
             )
           })}
         </div>
       </div>
-
-      {/* Pencapaian */}
-      {(stats.episodes_watched > 0 || stats.chapters_read > 0) && (
-        <div>
-          <h2 className="section-title text-slate-300 mb-3">Pencapaian</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#1a1e2e] rounded-2xl p-4 border border-[#1e2538]">
-              <BarChart3 size={20} className="text-blue-400 mb-2" />
-              <p className="text-2xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.episodes_watched}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Episode Ditonton</p>
-            </div>
-            <div className="bg-[#1a1e2e] rounded-2xl p-4 border border-[#1e2538]">
-              <BookOpen size={20} className="text-amber-400 mb-2" />
-              <p className="text-2xl font-black text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{stats.chapters_read}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Chapter Dibaca</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Aktivitas terakhir */}
-      {recent.length > 0 && (
-        <div>
-          <h2 className="section-title text-slate-300 mb-3">Aktivitas Terakhir</h2>
-          <div className="space-y-2">
-            {recent.map(entry => (
-              <Link key={entry.id} href={`/${entry.category}`}
-                className="flex items-center gap-3 bg-[#1a1e2e] rounded-xl p-3 border border-[#1e2538] card-hover">
-                <div className="text-xl">
-                  {entry.category === 'anime' ? '🎌' : entry.category === 'manga' ? '📚' : entry.category === 'drakor' ? '💝' : '🎭'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 truncate">{entry.title}</p>
-                  <p className="text-xs text-slate-500">
-                    {entry.category === 'manga' ? 'Ch' : 'Ep'} {entry.progress}
-                    {entry.total ? `/${entry.total}` : ''} · {STATUS_LABELS[entry.status]}
-                  </p>
-                </div>
-                {entry.score && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-yellow-400 text-xs">⭐</span>
-                    <span className="text-xs text-slate-400">{entry.score}</span>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {stats.total === 0 && (
-        <div className="text-center py-8">
-          <p className="text-4xl mb-3">🎌</p>
-          <p className="text-slate-400 font-medium">Belum ada list!</p>
-          <p className="text-slate-600 text-sm mt-1">Mulai tambahkan anime, manga, drakor, atau dorama</p>
-        </div>
-      )}
     </div>
   )
 }
