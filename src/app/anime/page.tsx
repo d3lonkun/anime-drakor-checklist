@@ -1,3 +1,4 @@
+'use client'
 import { Tv } from 'lucide-react'
 import CategoryListPage from '@/components/ui/CategoryListPage'
 

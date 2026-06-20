@@ -1,3 +1,4 @@
+'use client'
 import { Clapperboard } from 'lucide-react'
 import CategoryListPage from '@/components/ui/CategoryListPage'
 
