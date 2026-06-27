@@ -7,11 +7,11 @@ export default function DoramaPage() {
     <CategoryListPage
       category="dorama"
       title="Dorama"
-      subtitle="Drama Jepang favoritmu"
       icon={Video}
       showMALSearch={false}
       progressLabel="Sedang ditonton"
       unitLabel="Ep"
+      accentColor="#06b6d4"
     />
   )
 }

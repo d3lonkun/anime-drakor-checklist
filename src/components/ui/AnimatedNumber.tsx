@@ -2,25 +2,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { animate } from 'framer-motion'
 
-interface Props {
-  value: number
-  className?: string
-  duration?: number
-}
-
-export default function AnimatedNumber({ value, className, duration = 1 }: Props) {
+export default function AnimatedNumber({ value, className, duration = 1 }: { value: number; className?: string; duration?: number }) {
   const [display, setDisplay] = useState(0)
-  const prevValue = useRef(0)
-
+  const prev = useRef(0)
   useEffect(() => {
-    const controls = animate(prevValue.current, value, {
-      duration,
-      ease: 'easeOut',
-      onUpdate: latest => setDisplay(Math.round(latest)),
-    })
-    prevValue.current = value
-    return () => controls.stop()
+    const c = animate(prev.current, value, { duration, ease: 'easeOut', onUpdate: v => setDisplay(Math.round(v)) })
+    prev.current = value
+    return () => c.stop()
   }, [value, duration])
-
   return <span className={className}>{display}</span>
 }

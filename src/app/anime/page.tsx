@@ -7,11 +7,11 @@ export default function AnimePage() {
     <CategoryListPage
       category="anime"
       title="Anime"
-      subtitle="Koleksi anime favoritmu"
       icon={Tv}
       showMALSearch
-      progressLabel="Sedang di nonton"
+      progressLabel="Sedang ditonton"
       unitLabel="Ep"
+      accentColor="#8b5cf6"
     />
   )
 }

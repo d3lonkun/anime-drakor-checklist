@@ -7,11 +7,11 @@ export default function MangaPage() {
     <CategoryListPage
       category="manga"
       title="Komik"
-      subtitle="Baca komik dan manga seru"
       icon={BookOpen}
       showMALSearch
       progressLabel="Sedang dibaca"
       unitLabel="Ch"
+      accentColor="#f59e0b"
     />
   )
 }

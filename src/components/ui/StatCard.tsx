@@ -11,60 +11,49 @@ interface Props {
   active?: boolean
   onClick?: () => void
   delay?: number
+  color?: string
 }
 
-const SPARK_PATH = 'M2,26 C16,8 28,34 42,16 C56,-2 68,28 82,14 C94,3 106,22 124,9'
+const SPARK = 'M2,26 C16,8 28,34 42,16 C56,-2 68,28 82,14 C94,3 106,22 124,9'
 
-export default function StatCard({ icon: Icon, label, value, sublabel, active, onClick, delay = 0 }: Props) {
-  const Wrapper = onClick ? motion.button : motion.div
-
+export default function StatCard({ icon: Icon, label, value, sublabel, active, onClick, delay = 0, color = '#8b5cf6' }: Props) {
   return (
-    <Wrapper
+    <motion.div
       onClick={onClick}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.45, ease: 'easeOut' }}
-      whileHover={onClick ? { y: -3 } : undefined}
-      whileTap={onClick ? { scale: 0.98 } : undefined}
-      className={`relative text-left rounded-2xl p-4 sm:p-5 border transition-colors w-full ${
+      transition={{ delay, duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -2 }}
+      className={`glass card cursor-pointer select-none transition-all ${
         active
-          ? 'bg-violet-500/10 border-violet-500/50'
-          : 'bg-[#150f24] border-[#241a3a] hover:border-violet-500/30'
+          ? 'border-violet-500/30 bg-violet-500/10 shadow-[0_0_24px_-6px_rgba(139,92,246,0.35)]'
+          : 'border-white/[0.07] hover:border-violet-500/20'
       }`}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div
-          className="w-11 h-11 rounded-full flex items-center justify-center border"
-          style={{
-            background: 'radial-gradient(circle, rgba(168,85,247,0.18), rgba(168,85,247,0.04))',
-            borderColor: 'rgba(168,85,247,0.35)',
-            boxShadow: '0 0 18px -4px rgba(168,85,247,0.45)',
-          }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ background: `${color}22`, border: `1px solid ${color}44`, boxShadow: `0 0 16px -4px ${color}66` }}
         >
-          <Icon size={18} className="text-violet-300" />
+          <Icon size={18} style={{ color }} />
         </div>
-
-        <svg viewBox="0 0 124 40" width="92" height="32" className="hidden sm:block">
+        <svg viewBox="0 0 124 40" width="80" height="28" className="opacity-70">
           <motion.path
-            d={SPARK_PATH}
+            d={SPARK}
             fill="none"
-            stroke="#a855f7"
-            strokeWidth="2.2"
+            stroke={color}
+            strokeWidth="2"
             strokeLinecap="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.8 }}
-            transition={{ delay: delay + 0.2, duration: 1.1, ease: 'easeOut' }}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: delay + 0.3, duration: 1.2, ease: 'easeOut' }}
           />
         </svg>
       </div>
 
       <p className="text-xs text-slate-400 mb-0.5">{label}</p>
-      <AnimatedNumber
-        value={value}
-        className="text-3xl font-black text-white block"
-        duration={1.1}
-      />
-      <p className="text-[11px] text-slate-500 mt-1">{sublabel}</p>
-    </Wrapper>
+      <AnimatedNumber value={value} className="text-3xl font-black text-white" duration={1.1} />
+      <p className="text-[11px] text-slate-500 mt-1 leading-tight">{sublabel}</p>
+    </motion.div>
   )
 }

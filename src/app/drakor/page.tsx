@@ -7,11 +7,11 @@ export default function DrakorPage() {
     <CategoryListPage
       category="drakor"
       title="Drakor"
-      subtitle="Drama Korea pilihan terbaik"
       icon={Clapperboard}
       showMALSearch={false}
       progressLabel="Sedang ditonton"
       unitLabel="Ep"
+      accentColor="#ec4899"
     />
   )
 }
