@@ -27,6 +27,7 @@ export async function syncEntry(entry: MediaEntry): Promise<void> {
       total: entry.total ?? null,
       score: entry.score ?? null,
       notes: entry.notes ?? '',
+      favorite: entry.favorite ?? false,
       start_date: entry.start_date ?? null,
       end_date: entry.end_date ?? null,
       synopsis: entry.synopsis ?? null,
@@ -77,9 +78,9 @@ export async function pushAllToSupabase(entries: MediaEntry[]): Promise<void> {
         title_en: e.title_en ?? null, title_native: e.title_native ?? null,
         image_url: e.image_url ?? null, category: e.category, subtype: e.subtype,
         status: e.status, progress: e.progress, total: e.total ?? null,
-        score: e.score ?? null, notes: e.notes ?? '', start_date: e.start_date ?? null,
-        end_date: e.end_date ?? null, synopsis: e.synopsis ?? null,
-        genres: e.genres ?? [], year: e.year ?? null,
+        score: e.score ?? null, notes: e.notes ?? '', favorite: e.favorite ?? false,
+        start_date: e.start_date ?? null, end_date: e.end_date ?? null,
+        synopsis: e.synopsis ?? null, genres: e.genres ?? [], year: e.year ?? null,
         mal_score: e.mal_score ?? null, mal_url: e.mal_url ?? null,
         created_at: e.created_at, updated_at: e.updated_at,
       }))
@@ -90,16 +91,10 @@ export async function pushAllToSupabase(entries: MediaEntry[]): Promise<void> {
   }
 }
 
-// Ambil dari Supabase → update localStorage → beritahu semua komponen
 export async function syncFromSupabaseToLocal(): Promise<boolean> {
   const data = await pullFromSupabase()
   if (data === null) return false
-
-  const current = localStorage.getItem(STORAGE_KEY)
-  const newData = JSON.stringify(data)
-
-  // Selalu update dan dispatch, meski data sama
-  localStorage.setItem(STORAGE_KEY, newData)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   dispatchSyncEvent()
   return true
 }

@@ -21,24 +21,23 @@ export function getEntryById(id: string): MediaEntry | undefined {
   return getAllEntries().find(e => e.id === id)
 }
 
+export function getFavoriteEntries(): MediaEntry[] {
+  return getAllEntries().filter(e => e.favorite)
+}
+
 export function saveEntry(entry: MediaEntry): void {
   const entries = getAllEntries()
   const updated = { ...entry, updated_at: new Date().toISOString() }
   const idx = entries.findIndex(e => e.id === entry.id)
-  if (idx >= 0) {
-    entries[idx] = updated
-  } else {
-    entries.push(updated)
-  }
+  if (idx >= 0) entries[idx] = updated
+  else entries.push(updated)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-  // Sinkron ke Supabase (fire-and-forget)
   syncEntry(updated).catch(console.error)
 }
 
 export function deleteEntry(id: string): void {
   const entries = getAllEntries().filter(e => e.id !== id)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-  // Hapus dari Supabase juga
   deleteFromSupabase(id).catch(console.error)
 }
 
@@ -70,6 +69,17 @@ export function updateStatus(id: string, status: WatchStatus): void {
       entries[idx].end_date = new Date().toISOString().split('T')[0]
       if (entries[idx].total) entries[idx].progress = entries[idx].total!
     }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+    syncEntry(entries[idx]).catch(console.error)
+  }
+}
+
+export function toggleFavorite(id: string): void {
+  const entries = getAllEntries()
+  const idx = entries.findIndex(e => e.id === id)
+  if (idx >= 0) {
+    entries[idx].favorite = !entries[idx].favorite
+    entries[idx].updated_at = new Date().toISOString()
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
     syncEntry(entries[idx]).catch(console.error)
   }

@@ -1,6 +1,7 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
+import DesktopTopBar from './DesktopTopBar'
 import TopBar from './TopBar'
 import BottomNav from './BottomNav'
 import AuthGate from './AuthGate'
@@ -17,25 +18,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <AuthGate>
       <SyncProvider>
-        {/* Desktop sidebar */}
+        {/* Desktop */}
+        <DesktopTopBar />
         <Sidebar />
 
-        {/* Mobile top bar */}
+        {/* Mobile */}
         <TopBar />
 
-        {/* Main content */}
-        <main className="
-          lg:pl-56 xl:pl-64
-          pt-14 pb-20
-          lg:pt-0 lg:pb-8
-          min-h-screen
-        ">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="lg:pl-72 pt-14 pb-20 lg:pt-20 lg:pb-10 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </div>
         </main>
 
-        {/* Mobile bottom nav */}
         <BottomNav />
       </SyncProvider>
     </AuthGate>

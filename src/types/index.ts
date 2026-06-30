@@ -1,13 +1,13 @@
 export type MediaCategory = 'anime' | 'manga' | 'drakor' | 'dorama'
-export type MediaSubtype = 
-  | 'anime' 
-  | 'manga' 
-  | 'manhwa' 
-  | 'manhua' 
-  | 'komik_indo' 
-  | 'novel' 
+export type MediaSubtype =
+  | 'anime'
+  | 'manga'
+  | 'manhwa'
+  | 'manhua'
+  | 'komik_indo'
+  | 'novel'
   | 'webtoon'
-  | 'drakor' 
+  | 'drakor'
   | 'dorama'
 
 export type WatchStatus = 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch'
@@ -22,15 +22,15 @@ export interface MediaEntry {
   category: MediaCategory
   subtype: MediaSubtype
   status: WatchStatus
-  progress: number        // episode/chapter yang sudah ditonton/baca
-  total: number | null    // total episode/chapter (null = ongoing/unknown)
-  score: number | null    // 1-10
+  progress: number
+  total: number | null
+  score: number | null
   notes: string
+  favorite?: boolean
   start_date?: string
   end_date?: string
   created_at: string
   updated_at: string
-  // MAL data
   synopsis?: string
   genres?: string[]
   year?: number
